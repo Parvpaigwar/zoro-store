@@ -1,0 +1,23 @@
+{
+  "name": "zoro-store",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ZORO \u2014 unique, aesthetic objects. MERN monorepo.",
+  "workspaces": [
+    "backend",
+    "frontend",
+    "admin"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web,admin -c gray,blue,magenta \"npm run dev -w backend\" \"npm run dev -w frontend\" \"npm run dev -w admin\"",
+    "build": "npm run build -w frontend && npm run build -w admin",
+    "start": "npm run start -w backend",
+    "seed": "npm run seed -w backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.5"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
