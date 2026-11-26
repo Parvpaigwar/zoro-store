@@ -17,6 +17,7 @@ export const api = {
   product: (slug) => request(`/products/${encodeURIComponent(slug)}`),
   categories: () => request('/products/categories'),
   createOrder: (body) => request('/orders', { method: 'POST', body: JSON.stringify(body) }),
+  subscribe: (email) => request('/subscribe', { method: 'POST', body: JSON.stringify({ email }) }),
   order: (orderNumber) => request(`/orders/${encodeURIComponent(orderNumber)}`),
 };
 

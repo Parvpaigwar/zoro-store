@@ -1,93 +1,181 @@
+import { useRef } from 'react';
 import { Link } from 'react-router-dom';
+import Newsletter from '../components/Newsletter.jsx';
 import ProductCard from '../components/ProductCard.jsx';
 import { ErrorState, Loading } from '../components/Status.jsx';
+import {
+  ArrowRight,
+  CashIcon,
+  ChevronLeft,
+  ChevronRight,
+  GridIcon,
+  HandIcon,
+  ShieldIcon,
+  SparkleIcon,
+  StarIcon,
+} from '../components/Icons.jsx';
 import { api, assetUrl } from '../lib/api.js';
+import { categoryStyle } from '../lib/categories.js';
 import useFetch from '../lib/useFetch.js';
+
+// PLACEHOLDER — replace with real customer reviews before launch.
+const REVIEWS = [
+  { name: 'Aarav M.', text: 'The sword looks even better on the wall than in the photos. Packed really well too.' },
+  { name: 'Ishita R.', text: 'Love that every piece feels hand-picked. Cash on delivery made it easy to try.' },
+  { name: 'Kabir S.', text: 'Quick delivery and genuinely unique stuff — got so many compliments already.' },
+];
+
+const PROMO_TINTS = ['#e3ead6', '#f3e6d6', '#dde8f3'];
 
 export default function Home() {
   const { data: products, loading, error } = useFetch(() => api.products(), []);
+  const { data: categories } = useFetch(() => api.categories(), []);
+  const rail = useRef(null);
+
+  const scroll = (dir) => rail.current?.scrollBy({ left: dir * rail.current.clientWidth * 0.8, behavior: 'smooth' });
+
+  // One promo tile per category, using that category's first product image.
+  const promos = (categories || []).slice(0, 2).map((c, i) => ({
+    eyebrow: categoryStyle(c, i).blurb,
+    title: `Shop ${c}`,
+    to: `/shop/${c.toLowerCase()}`,
+    image: products?.find((p) => p.category === c)?.images?.[0],
+    tint: PROMO_TINTS[i],
+  }));
+  promos.push({
+    eyebrow: 'Our Story',
+    title: 'Why We Stock Less',
+    to: '/about',
+    image: '/images/products/warrior-sword-3.jpg',
+    tint: PROMO_TINTS[2],
+  });
 
   return (
-    <>
+    <div className="home container">
+      {/* Hero */}
       <section className="hero">
         <div className="hero-copy">
-          <span className="label">Edition 01</span>
-          <h1 className="display">
-            Unusual objects
-            <br />
-            <em>for curious spaces.</em>
-          </h1>
+          <span className="eyebrow">Edition 01 · New Collection</span>
+          <h1 className="hero-title">Unusual Objects for Curious Spaces</h1>
           <p className="hero-sub">
-            A small, slowly growing collection of things that are genuinely unique — pieces that start
-            conversations, earn a spot on your wall, or quietly make the day better.
+            Hand-picked, genuinely unique pieces — things that start conversations and quietly make the day better.
           </p>
           <Link to="/shop" className="btn btn-solid">
-            Shop the collection
+            Shop Now <ArrowRight size={16} />
           </Link>
+          <ul className="hero-trust">
+            <li><HandIcon size={18} /> Hand-picked</li>
+            <li><CashIcon size={18} /> Cash on Delivery</li>
+            <li><ShieldIcon size={18} /> Quality Checked</li>
+          </ul>
         </div>
         <Link to="/products/warrior-sword" className="hero-media">
           <img src={assetUrl('/images/products/warrior-sword-2.jpg')} alt="The Warrior Sword mounted on a wall" />
-          <span className="hero-caption">
-            <span>The Warrior Sword</span>
-            <span>View →</span>
+          <span className="hero-tag">
+            <small>Featured</small>
+            The Warrior
+            <br />
+            Sword
           </span>
         </Link>
       </section>
 
-      <section className="section">
-        <div className="section-head">
-          <h2 className="label">New In</h2>
-          <Link to="/shop" className="label link-underline">
-            View all
+      {/* Categories */}
+      {categories?.length > 0 && (
+        <section className="cat-row" aria-label="Categories">
+          {categories.map((c, i) => {
+            const { Icon, tint } = categoryStyle(c, i);
+            return (
+              <Link key={c} to={`/shop/${c.toLowerCase()}`} className="cat-item">
+                <span className="cat-circle" style={{ background: tint }}>
+                  <Icon size={28} />
+                </span>
+                {c}
+              </Link>
+            );
+          })}
+          <Link to="/shop" className="cat-item">
+            <span className="cat-circle cat-circle-plain">
+              <GridIcon size={26} />
+            </span>
+            View All
+          </Link>
+        </section>
+      )}
+
+      {/* Top picks */}
+      <section className="panel">
+        <div className="panel-head">
+          <h2 className="panel-title">
+            Top Picks For You <SparkleIcon size={18} className="accent-icon" />
+          </h2>
+          <Link to="/shop" className="see-all">
+            See All <ArrowRight size={16} />
           </Link>
         </div>
         {loading && <Loading />}
         {error && <ErrorState error={error} />}
         {products && (
-          <div className="grid">
-            {products.map((p) => (
-              <ProductCard key={p._id} product={p} />
-            ))}
+          <div className="rail-wrap">
+            <div className="rail" ref={rail}>
+              {products.map((p) => (
+                <ProductCard key={p._id} product={p} />
+              ))}
+            </div>
+            {products.length > 4 && (
+              <>
+                <button className="rail-btn rail-prev" onClick={() => scroll(-1)} aria-label="Previous">
+                  <ChevronLeft />
+                </button>
+                <button className="rail-btn rail-next" onClick={() => scroll(1)} aria-label="Next">
+                  <ChevronRight />
+                </button>
+              </>
+            )}
           </div>
         )}
       </section>
 
-      <section className="manifesto">
-        <p className="display display-sm">
-          We don't stock everything. <em>We stock the one thing</em> you didn't know you were looking for.
-        </p>
-        <div className="pillars">
-          <div>
-            <span className="label">01 — Rare</span>
-            <p className="muted">Objects you won't find on every shelf.</p>
-          </div>
-          <div>
-            <span className="label">02 — Considered</span>
-            <p className="muted">Each piece is hand-picked and checked before it ships.</p>
-          </div>
-          <div>
-            <span className="label">03 — Aesthetic</span>
-            <p className="muted">If it doesn't look good in a room, it doesn't make the cut.</p>
-          </div>
+      {/* Promo tiles */}
+      <section className="promos">
+        {promos.map((p) => (
+          <Link key={p.to} to={p.to} className="promo" style={{ background: p.tint }}>
+            <div className="promo-copy">
+              <span className="promo-eyebrow">{p.eyebrow}</span>
+              <h3>{p.title}</h3>
+              <span className="promo-cta">
+                Shop Now <ArrowRight size={14} />
+              </span>
+            </div>
+            {p.image && <img src={assetUrl(p.image)} alt="" loading="lazy" />}
+          </Link>
+        ))}
+      </section>
+
+      {/* Reviews */}
+      <section className="panel">
+        <div className="panel-head">
+          <h2 className="panel-title">
+            Loved By Our Customers <span className="heart">♥</span>
+          </h2>
+        </div>
+        <div className="reviews">
+          {REVIEWS.map((r) => (
+            <figure key={r.name} className="review">
+              <span className="avatar">{r.name[0]}</span>
+              <div>
+                <figcaption>{r.name}</figcaption>
+                <span className="stars">
+                  {[...Array(5)].map((_, i) => <StarIcon key={i} />)}
+                </span>
+                <blockquote>“{r.text}”</blockquote>
+              </div>
+            </figure>
+          ))}
         </div>
       </section>
 
-      <section className="split">
-        <div className="split-media">
-          <img src={assetUrl('/images/products/warrior-sword-3.jpg')} alt="Detail of the sword guard" loading="lazy" />
-        </div>
-        <div className="split-copy">
-          <span className="label">In focus</span>
-          <h2 className="display display-sm">The detail is the point.</h2>
-          <p className="muted">
-            Etched blade, cast dragon guard, copper-coiled grip, walnut-tone plaque. A wall piece built to be
-            looked at up close.
-          </p>
-          <Link to="/products/warrior-sword" className="label link-underline">
-            Discover the Warrior Sword
-          </Link>
-        </div>
-      </section>
-    </>
+      <Newsletter />
+    </div>
   );
 }
